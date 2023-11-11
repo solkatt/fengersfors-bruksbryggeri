@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useCallback, useRef, useState } from 'react'
-import { Canvas, useFrame, extend } from '@react-three/fiber'
+import { Canvas, useFrame, extend, Vector2 } from '@react-three/fiber'
 import OrbitControls from 'three/examples/jsm/controls/OrbitControls.js';
 import { Mesh, PlaneGeometry } from 'three';
-import { useSpring, animated, easings } from '@react-spring/three'
+import { useSpring, animated, easings, SpringValue } from '@react-spring/three'
 
 
 extend({ OrbitControls })
@@ -43,94 +43,15 @@ const Plane = (props: any) => {
 }
 
 
-const Bottle = ({ position, color }: { position: any, color: string }) => {
-
-    // const [position, setPosition] = useState(0)
-    // const { width, height } = useThree(state => state.size)
+const Bottle = ({ position, color, rotation }: { position: any, color: string, rotation: any }) => {
 
 
-    // TODO
-    // const numberOfObjects
-    // calculate the step between each object (Math.Pi * somethind / numberOfObjects?)
-    // onClick  object / swipe / click arrow (<= / =>) set update positions 
-
-
-
-
-
-    const [springs, api] = useSpring(
-        () => ({
-            scale: 1,
-            // position: [0, 0],
-            color: '#ff6d6d',
-            config: key => {
-                switch (key) {
-                    case 'scale':
-                        return {
-                            mass: 4,
-                            friction: 10,
-                        }
-                    // case 'position':
-                    //     return {
-                    //         mass: 4,
-                    //         friction: 10,
-                    //     }
-                    default:
-                        return {}
-                }
-            },
-        }),
-        []
-    )
     const bottleRef = useRef<Mesh>(null);
 
 
-    const handleClick = () => {
-        api.start({
-            scale: 2.5,
-        })
-    }
-
-    // const handleClick = useCallback(
-    //     () => {
-
-    //         const numberOfObjects = 8;
-    //         const radius = 6;
-    //         const radianInterval = (2.0 * Math.PI) / numberOfObjects;
-
-    //         console.log({ position })
-
-    //         setPosition((prev) => (radianInterval + prev))
-    //         const x = Math.cos(position + radianInterval)
-    //         const z = Math.sin(position + radianInterval)
-
-    //         // const x = position + radianInterval
-    //         // const z = position + radianInterval
-
-    //         api.start({
-    //             position: [x * 2, z * 2],
-    //         })
-    //     },
-
-    //     [api, position]
-    // )
-
-
-
-
-    // useFrame((state, delta) => {
-
-    //     // console.log(delta)
-    //     bottleRef.current!.position.x = Math.cos(state.clock.elapsedTime) * 1.5
-    //     bottleRef.current!.position.z = Math.sin(state.clock.elapsedTime) * 1.5
-
-    // })
-
     return (
-        // <animated.mesh onClick={handleClick} position={[Math.cos(position) * 3, 0, Math.sin(position) * 3]} ref={bottleRef} rotation-z={1.6}>
-        // <animated.mesh onClick={handleClick} position={springs.position.to((x, z) => [x, 0, z])}
-        <animated.mesh onClick={handleClick} position={position}
-            ref={bottleRef} >
+        <animated.mesh position={position}
+            ref={bottleRef} rotation={rotation}>
             {/* <cylinderGeometry args={[0.5, 0.5, 1]} /> */}
             <boxGeometry args={[0.2, 0.2, 0.2]} />
             <meshPhysicalMaterial attach="material" color={color} />
@@ -150,96 +71,62 @@ const Poster = (props: any) => {
 }
 
 
-const Group = ({ rotation }: { rotation: number }) => {
+const Group = ({ items, rotation }: { rotation: number | any, items: { color: string }[] }) => {
 
+    const [step, setStep] = useState(0)
 
     const groupRef = useRef(null)
 
-
-
-
-    const [springs, api] = useSpring(
-        () => ({
-            rotation: 0,
-            color: '#ff6d6d',
-            config: key => {
-                switch (key) {
-                    case 'rotation':
-                        return {
-                            mass: 4,
-                            friction: 10,
-                        }
-                    default:
-                        return {}
-                }
-            },
-        }),
-        []
-    )
-
-    const handleClick = useCallback(
-        () => {
-
-            const numberOfObjects = 8;
-            const radius = 6;
-            const radianInterval = (2.0 * Math.PI) / numberOfObjects;
-
-            // console.log({ position })
-
-            // setPosition((prev) => (radianInterval + prev))
-            // const x = Math.cos(position + radianInterval)
-            // const z = Math.sin(position + radianInterval)
-
-            // const x = position + radianInterval
-            // const z = position + radianInterval
-
-            api.start({
-                rotation: rotation + radianInterval,
-            })
+    const { rotationD } = useSpring({
+        // rotationD: rotation === 1 ? Math.PI / 2 : 0,
+        rotationD: rotation,
+        config: {
+            mass: 2,
+            friction: 50,
+            tension: 70,
         },
-
-        [api, rotation]
-    )
+    });
 
 
 
-    // TODO
-    // recieve array objects
-    // arr.length == numberOfObjects
-    // generate placement of Bottles based on PI and how many items (Math.PI / numberOfObjects?)
+    // todo
+    // calculate bottle position based on number of items 
+    // map bottles with correct position in a circle
 
-    // each bottle takes color, img, as prop
+    function getCirclePositions(nrOfItems: number, circleSize: number) {
+        const positions = [];
+        for (let i = 0; i < nrOfItems; i++) {
+            const angle = (2 * Math.PI / nrOfItems) * i;
+            const x = circleSize * Math.cos(angle);
+            const y = circleSize * Math.sin(angle);
+            const angleToFaceCenter = Math.atan2(y, x);
 
-
-    // const [rotation, setRotation] = useState(0)
-
-
-    // useFrame((state, delta) => (
-    //     // @ts-ignore
-    //     groupRef.current.rotation.y += 0.01
-    // ))
-
-    // const rotate = () => {
-    //     setRotation(prev => prev + 0.5)
-    // }
+            positions.push({ x, y, angle: angleToFaceCenter });
+        }
+        return positions;
+    }
 
 
-    console.log({})
+    const pos = getCirclePositions(items.length, 4)
+
+    console.log('POS;', pos)
+
 
     return (
-        <group ref={groupRef} rotation-y={rotation} >
+        <animated.group ref={groupRef} rotation-y={rotationD} >
             {/* <group ref={groupRef} rotation-y={springs.rotation.to((rotation) => rotation)} > */}
 
             {/* <Bottle position={[1, 1, 1]} /> */}
-            <Bottle position={[0, 0, 4]} color="red" />
-            <mesh position={[0, 0, 0]} scale={0.3}>
+            {/* <mesh position={[0, 0, 0]} scale={0.3}>
                 <boxGeometry />
-                <meshStandardMaterial color="blue" />
-            </mesh>
-            <Bottle position={[0, 0, -4]} color="blue" />
-            <Bottle position={[4, 0, 1]} color="green" />
-            <Bottle position={[-4, 0, 1]} color="yellow" />
-        </group>
+                <meshStandardMaterial color="pink" />
+            </mesh> */}
+
+            {/* <Bottle color="red" position={[1, 2, 0]} /> */}
+            {items.map((item, i) => (
+                <Bottle color={item.color} position={[pos[i].x, 0, pos[i].y]} rotation={[0, -pos[i].angle, 0]} />
+            ))}
+        </animated.group>
     )
 }
 
@@ -254,15 +141,83 @@ export default function Scene() {
     // })
 
 
-    const [rotation, setRotation] = useState(0);
+    const items = [
+        { color: 'red' },
+        { color: 'green' },
+        { color: 'pink' },
+        { color: 'blue' },
+        { color: 'orange' },
+        { color: 'orange' },
+    ]
+
+
+
+
+    const NR_OF_ITEMS = items.length ?? 0;
+
+
+
+
+    const STEP_SIZE = getStepSize(NR_OF_ITEMS)
+
+    const [rotation, setRotation] = useState<number>(STEP_SIZE / 2);
+
+    function getStepSize(nrOfItems: number) {
+        const degrees = 360 / nrOfItems;
+        console.log({ degrees })
+        const radians = degrees * (Math.PI / 180);
+        console.log({ radians })
+
+        return radians;
+
+    }
+
 
     const rotateL = () => {
-        setRotation((prev) => prev - 0.2)
+        setRotation((prev) => prev - STEP_SIZE)
+
     }
 
     const rotateR = () => {
-        setRotation((prev) => prev + 0.2)
+        setRotation((prev) => prev + STEP_SIZE)
     }
+
+
+    const [springs, api] = useSpring(
+        () => ({
+            rotate: 0,
+            config: key => {
+                switch (key) {
+                    // case 'position':
+                    //     return {
+                    //         mass: 4,
+                    //         friction: 10,
+                    //     }
+                    default:
+                        return {}
+                }
+            },
+        }),
+        []
+    )
+
+
+    console.log({ springs })
+    const bottleRef = useRef<Mesh>(null);
+
+
+    // todo:
+    // array of items (bottles and posters and text)
+    // calculate radial thing(math pi / nr of items ) to get rotational step size 
+
+
+    // function degreesToRadians(degrees: number) {
+    //     return degrees * (Math.PI / 180);
+    // }
+
+
+
+    console.log(getStepSize(4))
 
     return (
         // <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 1, 5] }}>
@@ -273,7 +228,7 @@ export default function Scene() {
                 {/* <Box position={[-1.2, 0, 0]} />
             <Box position={[1.2, 0, 0]} /> */}
                 {/* <Group rotation-y={rotation} /> */}
-                <Group rotation={rotation} />
+                <Group rotation={rotation} items={items} />
                 {/* <Poster position={[0, 0, 2]} /> */}
                 <Plane position={[0, -2.53, 1]} rotation-x={1} scale={10} />
             </Canvas>
