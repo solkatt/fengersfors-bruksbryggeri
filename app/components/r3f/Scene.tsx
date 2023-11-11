@@ -237,9 +237,9 @@ export default function Scene() {
     return (
         // <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 1, 5] }}>
         <>
-            <Canvas>
+            <Canvas style={{ background: "white" }}>
                 <ambientLight intensity={0.2} />
-                <pointLight position={[11, -6, 4]} intensity={100} />
+                <pointLight position={[2, 2, 6]} intensity={100} />
                 {/* <Box position={[-1.2, 0, 0]} />
             <Box position={[1.2, 0, 0]} /> */}
                 {/* <Group rotation-y={rotation} /> */}
