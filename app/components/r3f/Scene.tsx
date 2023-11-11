@@ -60,12 +60,12 @@ const Bottle = ({ position, color, rotation }: { position: any, color: string, r
 }
 
 
-const Poster = (props: any) => {
+const Poster = ({ posters, step, ...props }: any) => {
 
     return (
         <mesh {...props}>
-            <planeGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial color="white" />
+            <planeGeometry args={[2, 2, 1]} />
+            <meshStandardMaterial color={posters[step].color} />
         </mesh>
     )
 }
@@ -147,7 +147,16 @@ export default function Scene() {
         { color: 'pink' },
         { color: 'blue' },
         { color: 'orange' },
+        { color: 'purple' },
+    ]
+
+    const posters = [
+        { color: 'red' },
+        { color: 'green' },
+        { color: 'pink' },
+        { color: 'blue' },
         { color: 'orange' },
+        { color: 'purple' },
     ]
 
 
@@ -160,7 +169,7 @@ export default function Scene() {
 
     const STEP_SIZE = getStepSize(NR_OF_ITEMS)
 
-    const [rotation, setRotation] = useState<number>(STEP_SIZE / 2);
+    const [rotation, setRotation] = useState<{ rotation: number, step: number }>({ rotation: STEP_SIZE / 2, step: 0 });
 
     function getStepSize(nrOfItems: number) {
         const degrees = 360 / nrOfItems;
@@ -173,13 +182,19 @@ export default function Scene() {
     }
 
 
+    const handleStep = (step: number) => {
+        if (step >= NR_OF_ITEMS) return 0;
+        if (step < 0) return NR_OF_ITEMS;
+        return step;
+    }
+
     const rotateL = () => {
-        setRotation((prev) => prev - STEP_SIZE)
+        setRotation((prev) => ({ rotation: prev.rotation - STEP_SIZE, step: handleStep(prev.step - 1) }))
 
     }
 
     const rotateR = () => {
-        setRotation((prev) => prev + STEP_SIZE)
+        setRotation((prev) => ({ rotation: prev.rotation + STEP_SIZE, step: handleStep(prev.step + 1) }))
     }
 
 
@@ -228,12 +243,13 @@ export default function Scene() {
                 {/* <Box position={[-1.2, 0, 0]} />
             <Box position={[1.2, 0, 0]} /> */}
                 {/* <Group rotation-y={rotation} /> */}
-                <Group rotation={rotation} items={items} />
-                {/* <Poster position={[0, 0, 2]} /> */}
-                <Plane position={[0, -2.53, 1]} rotation-x={1} scale={10} />
+                <Group rotation={rotation.rotation} items={items} />
+                <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} />
+                {/* <Plane position={[0, -2.53, 1]} rotation-x={1} scale={10} /> */}
             </Canvas>
 
             <div className="flex gap-4">
+                <h1>{rotation.step}</h1>
                 <div className="text-xl cursor-pointer active:bg-red-200" onClick={rotateL}>{'<'}</div>
                 <div className="text-xl cursor-pointer active:bg-red-200" onClick={rotateR}>{'>'}</div>
             </div>
