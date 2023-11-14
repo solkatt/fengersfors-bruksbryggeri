@@ -1,1 +1,2 @@
 https://codepen.io/pizza3/pen/KKVveQZ
+https://observablehq.com/@rveciana/three-js-object-moving-object-along-path
