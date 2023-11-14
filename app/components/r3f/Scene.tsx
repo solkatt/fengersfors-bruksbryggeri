@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, extend, Vector2 } from '@react-three/fiber'
 import OrbitControls from 'three/examples/jsm/controls/OrbitControls.js';
-import { Mesh, PlaneGeometry } from 'three';
+import { Mesh, PlaneGeometry, ShaderMaterial, Vector3 } from 'three';
 import { useSpring, animated, easings, SpringValue } from '@react-spring/three'
+import vertexShader from '../../shaders/vertexShader';
+import fragmentShader from '../../shaders/fragmentShader';
 
 
 extend({ OrbitControls })
@@ -37,7 +39,7 @@ const Plane = (props: any) => {
     return (
         <mesh {...props}>
             <planeGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial />
+            <meshPhysicalMaterial attach="material" color="white" />
         </mesh>
     )
 }
@@ -51,6 +53,7 @@ const Bottle = ({ position, color, rotation }: { position: any, color: string, r
 
     return (
         <animated.mesh position={position}
+            castShadow
             ref={bottleRef} rotation={rotation}>
             {/* <cylinderGeometry args={[0.5, 0.5, 1]} /> */}
             <boxGeometry args={[0.2, 0.2, 0.2]} />
@@ -61,11 +64,68 @@ const Bottle = ({ position, color, rotation }: { position: any, color: string, r
 
 
 const Poster = ({ posters, step, ...props }: any) => {
+    // https://blog.maximeheckel.com/posts/the-study-of-shaders-with-react-three-fiber/
+
+
+    // TODO:
+    // create a few simple shaders
+    // create a object in blender with morph keys / states
+    // for example 1. circle, 2 octagon 3.square (or more complicated tree, lightning bolt, 
+
+
+    // next step
+    // use gesture
+
+    // nexter step
+    // if spam rotate btns, bottles will break or fly away
+
+
+
+    const meshRef = useRef<Mesh>(null!);
+
+
+    const uniforms = useMemo(() => ({
+        u_test: {
+            value: new Vector3(0.0)
+        }
+    }), [])
+
+
+    const colorMap = {
+        0: new Vector3(1.0, 0.0, 0.0),
+        1: new Vector3(0.0, 1.0, 0.0),
+        2: new Vector3(0.0, 0.0, 1.0),
+        3: new Vector3(1.0, 1.0, 0.0),
+        4: new Vector3(0.0, 1.0, 1.0),
+        5: new Vector3(1.0, 0.0, 1.0)
+    }
+
+    useEffect(() => {
+        console.log('step in useffect', step)
+        //@ts-ignore
+        meshRef.current.material.uniforms.u_test.value = colorMap[step];
+        //@ts-ignore
+        // meshRef.current.rotation.z += 0.2;
+    }, [step]);
+
+
+    // useFrame((state) => {
+    //     const { clock } = state;
+    //     console.log(step % 2 ? 1.0 : 0.0)
+    //     //@ts-ignore
+    //     meshRef.current.material.uniforms.u_test.value = new Vector3(step);
+    // });
 
     return (
-        <mesh {...props}>
-            <planeGeometry args={[2, 2, 1]} />
-            <meshStandardMaterial color={posters[step].color} />
+        <mesh {...props} ref={meshRef} >
+            <planeGeometry args={[3, 3, 1]} />
+            <shaderMaterial
+
+                fragmentShader={fragmentShader}
+                vertexShader={vertexShader}
+                uniforms={uniforms}
+            />
+            {/* <meshStandardMaterial color={posters[step].color} /> */}
         </mesh>
     )
 }
@@ -107,13 +167,13 @@ const Group = ({ items, rotation }: { rotation: number | any, items: { color: st
     }
 
 
-    const pos = getCirclePositions(items.length, 4)
+    const pos = getCirclePositions(items.length, 2)
 
     console.log('POS;', pos)
 
 
     return (
-        <animated.group ref={groupRef} rotation-y={rotationD} >
+        <animated.group ref={groupRef} rotation-y={rotationD} position={[0, 0, 2]} >
             {/* <group ref={groupRef} rotation-y={springs.rotation.to((rotation) => rotation)} > */}
 
             {/* <Bottle position={[1, 1, 1]} /> */}
@@ -198,26 +258,6 @@ export default function Scene() {
     }
 
 
-    const [springs, api] = useSpring(
-        () => ({
-            rotate: 0,
-            config: key => {
-                switch (key) {
-                    // case 'position':
-                    //     return {
-                    //         mass: 4,
-                    //         friction: 10,
-                    //     }
-                    default:
-                        return {}
-                }
-            },
-        }),
-        []
-    )
-
-
-    console.log({ springs })
     const bottleRef = useRef<Mesh>(null);
 
 
@@ -238,14 +278,14 @@ export default function Scene() {
         // <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 1, 5] }}>
         <>
             <Canvas style={{ background: "white" }}>
-                <ambientLight intensity={0.2} />
-                <pointLight position={[2, 2, 6]} intensity={100} />
+                <ambientLight intensity={0.2} castShadow />
+                <pointLight position={[2, 2, 6]} intensity={100} castShadow />
                 {/* <Box position={[-1.2, 0, 0]} />
             <Box position={[1.2, 0, 0]} /> */}
                 {/* <Group rotation-y={rotation} /> */}
                 <Group rotation={rotation.rotation} items={items} />
                 <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} />
-                {/* <Plane position={[0, -2.53, 1]} rotation-x={1} scale={10} /> */}
+                {/* <Plane position={[0, -0.3, 2]} rotation-x={5} scale={4} /> */}
             </Canvas>
 
             <div className="flex gap-4">
