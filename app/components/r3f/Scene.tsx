@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, useFrame, extend, Vector2 } from '@react-three/fiber'
+import { Canvas, useFrame, extend, Vector2, useThree } from '@react-three/fiber'
 import OrbitControls from 'three/examples/jsm/controls/OrbitControls.js';
 import { Mesh, PlaneGeometry, ShaderMaterial, Vector3 } from 'three';
 import { useSpring, animated, easings, SpringValue } from '@react-spring/three'
 import vertexShader from '../../shaders/vertexShader';
 import fragmentShader from '../../shaders/fragmentShader';
+import { useDrag } from "@use-gesture/react"
 
 
 extend({ OrbitControls })
@@ -37,7 +38,7 @@ function Box(props: any) {
 const Plane = (props: any) => {
 
     return (
-        <mesh {...props}>
+        <mesh {...props} receiveShadow>
             <planeGeometry args={[1, 1, 1]} />
             <meshPhysicalMaterial attach="material" color="white" />
         </mesh>
@@ -45,20 +46,51 @@ const Plane = (props: any) => {
 }
 
 
-const Bottle = ({ position, color, rotation }: { position: any, color: string, rotation: any }) => {
+const Bottle = ({ position, color, rotation, rotateL, rotateR }: { position: any, color: string, rotation: any, rotateL: () => void, rotateR: () => void }) => {
+    const { size, viewport } = useThree()
+    const aspect = size.width / viewport.width;
 
+    const [spring, set] = useSpring(() => ({ position: [0, 0, 0], config: { mass: 1, friction: 40, tension: 800 } }))
+
+    const changeStep = (movement: any) => {
+
+        console.log('move:', movement)
+        // alert('change step')
+    }
+
+
+    const bind: any = useDrag(({ active, movement: [x, y], down, cancel }) => {
+
+        if (x >= 100) {
+            rotateL();
+            cancel();
+        }
+
+        if (x <= -100) {
+            rotateR();
+            cancel();
+        }
+        changeStep(x)
+        set({ config: { mass: down ? 1 : 4, tension: down ? 2000 : 800 }, position: down && active ? [0, (-y / aspect) * 0.2, (-x / aspect) * 0.2] : [0, 0, 0], immediate: active })
+    }
+    )
 
     const bottleRef = useRef<Mesh>(null);
 
 
     return (
-        <animated.mesh position={position}
-            castShadow
-            ref={bottleRef} rotation={rotation}>
-            {/* <cylinderGeometry args={[0.5, 0.5, 1]} /> */}
-            <boxGeometry args={[0.2, 0.2, 0.2]} />
-            <meshPhysicalMaterial attach="material" color={color} />
-        </animated.mesh>
+        <group position={position} rotation={rotation}
+        >
+            <animated.mesh
+                {...spring} {...bind()}
+                castShadow
+                ref={bottleRef}
+            >
+                {/* <cylinderGeometry args={[0.5, 0.5, 1]} /> */}
+                <boxGeometry args={[0.2, 0.2, 0.2]} />
+                <meshPhysicalMaterial attach="material" color={color} />
+            </animated.mesh>
+        </group>
     )
 }
 
@@ -131,9 +163,8 @@ const Poster = ({ posters, step, ...props }: any) => {
 }
 
 
-const Group = ({ items, rotation }: { rotation: number | any, items: { color: string }[] }) => {
+const Group = ({ items, rotation, rotateL, rotateR }: { rotation: number | any, items: { color: string }[], rotateL: () => void, rotateR: () => void }) => {
 
-    const [step, setStep] = useState(0)
 
     const groupRef = useRef(null)
 
@@ -184,7 +215,7 @@ const Group = ({ items, rotation }: { rotation: number | any, items: { color: st
 
             {/* <Bottle color="red" position={[1, 2, 0]} /> */}
             {items.map((item, i) => (
-                <Bottle color={item.color} position={[pos[i].x, 0, pos[i].y]} rotation={[0, -pos[i].angle, 0]} />
+                <Bottle color={item.color} position={[pos[i].x, 0, pos[i].y]} rotation={[0, -pos[i].angle, 0]} rotateL={rotateL} rotateR={rotateR} />
             ))}
         </animated.group>
     )
@@ -283,8 +314,8 @@ export default function Scene() {
                 {/* <Box position={[-1.2, 0, 0]} />
             <Box position={[1.2, 0, 0]} /> */}
                 {/* <Group rotation-y={rotation} /> */}
-                <Group rotation={rotation.rotation} items={items} />
-                <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} />
+                <Group rotation={rotation.rotation} items={items} rotateL={rotateL} rotateR={rotateR} />
+                {/* <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} /> */}
                 {/* <Plane position={[0, -0.3, 2]} rotation-x={5} scale={4} /> */}
             </Canvas>
 
