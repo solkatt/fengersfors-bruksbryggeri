@@ -61,16 +61,18 @@ const Bottle = ({ position, color, rotation, rotateL, rotateR }: { position: any
 
     const bind: any = useDrag(({ active, movement: [x, y], down, cancel }) => {
 
-        if (x >= 100) {
-            rotateL();
+        if (x <= -100) {
             cancel();
+            rotateL();
         }
 
-        if (x <= -100) {
-            rotateR();
+
+        if (x >= 100) {
             cancel();
+            rotateR();
         }
-        changeStep(x)
+
+
         set({ config: { mass: down ? 1 : 4, tension: down ? 2000 : 800 }, position: down && active ? [0, (-y / aspect) * 0.2, (-x / aspect) * 0.2] : [0, 0, 0], immediate: active })
     }
     )
@@ -315,7 +317,7 @@ export default function Scene() {
             <Box position={[1.2, 0, 0]} /> */}
                 {/* <Group rotation-y={rotation} /> */}
                 <Group rotation={rotation.rotation} items={items} rotateL={rotateL} rotateR={rotateR} />
-                {/* <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} /> */}
+                <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} />
                 {/* <Plane position={[0, -0.3, 2]} rotation-x={5} scale={4} /> */}
             </Canvas>
 
