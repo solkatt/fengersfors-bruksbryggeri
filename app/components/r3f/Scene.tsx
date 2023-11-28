@@ -7,163 +7,13 @@ import { Mesh, PlaneGeometry, ShaderMaterial, Vector3 } from 'three';
 import { useSpring, animated, easings, SpringValue } from '@react-spring/three'
 import vertexShader from '../../shaders/vertexShader';
 import fragmentShader from '../../shaders/fragmentShader';
-import { useDrag } from "@use-gesture/react"
+import { useDrag, useGesture } from "@use-gesture/react"
+import useDebounce from '../hooks/useDebounce';
+import Bottle from './Bottle';
+import Poster from './Poster';
 
 
 extend({ OrbitControls })
-
-function Box(props: any) {
-    const meshRef = useRef(null)
-    const [hovered, setHover] = useState(false)
-    const [active, setActive] = useState(false)
-    useFrame((state, delta) => (
-        // @ts-ignore
-        meshRef.current.rotation.x += 0.01
-    ))
-    return (
-        <mesh
-            {...props}
-            ref={meshRef}
-            scale={active ? 1.5 : 1}
-            onClick={(event) => setActive(!active)}
-            onPointerOver={(event) => setHover(true)}
-            onPointerOut={(event) => setHover(false)}>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-        </mesh>
-    )
-}
-
-
-const Plane = (props: any) => {
-
-    return (
-        <mesh {...props} receiveShadow>
-            <planeGeometry args={[1, 1, 1]} />
-            <meshPhysicalMaterial attach="material" color="white" />
-        </mesh>
-    )
-}
-
-
-const Bottle = ({ position, color, rotation, rotateL, rotateR }: { position: any, color: string, rotation: any, rotateL: () => void, rotateR: () => void }) => {
-    const { size, viewport } = useThree()
-    const aspect = size.width / viewport.width;
-
-    const [spring, set] = useSpring(() => ({ position: [0, 0, 0], config: { mass: 1, friction: 40, tension: 800 } }))
-
-    const changeStep = (movement: any) => {
-
-        console.log('move:', movement)
-        // alert('change step')
-    }
-
-
-    const bind: any = useDrag(({ active, movement: [x, y], down, cancel }) => {
-
-        if (x <= -100) {
-            cancel();
-            rotateL();
-        }
-
-
-        if (x >= 100) {
-            cancel();
-            rotateR();
-        }
-
-
-        set({ config: { mass: down ? 1 : 4, tension: down ? 2000 : 800 }, position: down && active ? [0, (-y / aspect) * 0.2, (-x / aspect) * 0.2] : [0, 0, 0], immediate: active })
-    }
-    )
-
-    const bottleRef = useRef<Mesh>(null);
-
-
-    return (
-        <group position={position} rotation={rotation}
-        >
-            <animated.mesh
-                {...spring} {...bind()}
-                castShadow
-                ref={bottleRef}
-            >
-                {/* <cylinderGeometry args={[0.5, 0.5, 1]} /> */}
-                <boxGeometry args={[0.2, 0.2, 0.2]} />
-                <meshPhysicalMaterial attach="material" color={color} />
-            </animated.mesh>
-        </group>
-    )
-}
-
-
-const Poster = ({ posters, step, ...props }: any) => {
-    // https://blog.maximeheckel.com/posts/the-study-of-shaders-with-react-three-fiber/
-
-
-    // TODO:
-    // create a few simple shaders
-    // create a object in blender with morph keys / states
-    // for example 1. circle, 2 octagon 3.square (or more complicated tree, lightning bolt, 
-
-
-    // next step
-    // use gesture
-
-    // nexter step
-    // if spam rotate btns, bottles will break or fly away
-
-
-
-    const meshRef = useRef<Mesh>(null!);
-
-
-    const uniforms = useMemo(() => ({
-        u_test: {
-            value: new Vector3(0.0)
-        }
-    }), [])
-
-
-    const colorMap = {
-        0: new Vector3(1.0, 0.0, 0.0),
-        1: new Vector3(0.0, 1.0, 0.0),
-        2: new Vector3(0.0, 0.0, 1.0),
-        3: new Vector3(1.0, 1.0, 0.0),
-        4: new Vector3(0.0, 1.0, 1.0),
-        5: new Vector3(1.0, 0.0, 1.0)
-    }
-
-    useEffect(() => {
-        console.log('step in useffect', step)
-        //@ts-ignore
-        meshRef.current.material.uniforms.u_test.value = colorMap[step];
-        //@ts-ignore
-        // meshRef.current.rotation.z += 0.2;
-    }, [step]);
-
-
-    // useFrame((state) => {
-    //     const { clock } = state;
-    //     console.log(step % 2 ? 1.0 : 0.0)
-    //     //@ts-ignore
-    //     meshRef.current.material.uniforms.u_test.value = new Vector3(step);
-    // });
-
-    return (
-        <mesh {...props} ref={meshRef} >
-            <planeGeometry args={[3, 3, 1]} />
-            <shaderMaterial
-
-                fragmentShader={fragmentShader}
-                vertexShader={vertexShader}
-                uniforms={uniforms}
-            />
-            {/* <meshStandardMaterial color={posters[step].color} /> */}
-        </mesh>
-    )
-}
-
 
 const Group = ({ items, rotation, rotateL, rotateR }: { rotation: number | any, items: { color: string }[], rotateL: () => void, rotateR: () => void }) => {
 
@@ -237,10 +87,10 @@ export default function Scene() {
     const items = [
         { color: 'red' },
         { color: 'green' },
-        { color: 'pink' },
+        { color: 'brown' },
         { color: 'blue' },
         { color: 'orange' },
-        { color: 'purple' },
+        { color: 'purple' }
     ]
 
     const posters = [
@@ -249,7 +99,7 @@ export default function Scene() {
         { color: 'pink' },
         { color: 'blue' },
         { color: 'orange' },
-        { color: 'purple' },
+        // { color: 'purple' },
     ]
 
 
@@ -277,7 +127,7 @@ export default function Scene() {
 
     const handleStep = (step: number) => {
         if (step >= NR_OF_ITEMS) return 0;
-        if (step < 0) return NR_OF_ITEMS;
+        if (step <= 0) return NR_OF_ITEMS;
         return step;
     }
 
@@ -317,7 +167,7 @@ export default function Scene() {
             <Box position={[1.2, 0, 0]} /> */}
                 {/* <Group rotation-y={rotation} /> */}
                 <Group rotation={rotation.rotation} items={items} rotateL={rotateL} rotateR={rotateR} />
-                <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} />
+                {/* <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} /> */}
                 {/* <Plane position={[0, -0.3, 2]} rotation-x={5} scale={4} /> */}
             </Canvas>
 
