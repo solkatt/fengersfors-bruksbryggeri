@@ -8,21 +8,21 @@ import { useSpring, animated, easings, SpringValue } from '@react-spring/three'
 import vertexShader from '../../shaders/vertexShader';
 import fragmentShader from '../../shaders/fragmentShader';
 import { useDrag, useGesture } from "@use-gesture/react"
-import useDebounce from '../hooks/useDebounce';
 import Bottle from './Bottle';
 import Poster from './Poster';
+import Plane from './Plane';
 
 
 extend({ OrbitControls })
 
-const Group = ({ items, rotation, rotateL, rotateR }: { rotation: number | any, items: { color: string }[], rotateL: () => void, rotateR: () => void }) => {
+const Group = ({ items, rotation, rotateL, rotateR }: { rotation: { rotation: number, step: number }, items: { color: string }[], rotateL: () => void, rotateR: () => void }) => {
 
 
     const groupRef = useRef(null)
 
     const { rotationD } = useSpring({
         // rotationD: rotation === 1 ? Math.PI / 2 : 0,
-        rotationD: rotation,
+        rotationD: rotation.rotation,
         config: {
             mass: 2,
             friction: 50,
@@ -54,6 +54,10 @@ const Group = ({ items, rotation, rotateL, rotateR }: { rotation: number | any, 
 
     console.log('POS;', pos)
 
+    // todo 
+    // draggable={i === rotation.step + 2}
+    // the starting bottle should be calululated at step 0
+    // so draggable is - i === rotation.step
 
     return (
         <animated.group ref={groupRef} rotation-y={rotationD} position={[0, 0, 2]} >
@@ -67,7 +71,7 @@ const Group = ({ items, rotation, rotateL, rotateR }: { rotation: number | any, 
 
             {/* <Bottle color="red" position={[1, 2, 0]} /> */}
             {items.map((item, i) => (
-                <Bottle color={item.color} position={[pos[i].x, 0, pos[i].y]} rotation={[0, -pos[i].angle, 0]} rotateL={rotateL} rotateR={rotateR} />
+                <Bottle draggable={i === (rotation.step + 2) % 7} color={item.color} position={[pos[i].x, 0, pos[i].y]} rotation={[0, -pos[i].angle, 0]} rotateL={rotateL} rotateR={rotateR} />
             ))}
         </animated.group>
     )
@@ -160,15 +164,17 @@ export default function Scene() {
     return (
         // <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 1, 5] }}>
         <>
-            <Canvas style={{ background: "white" }}>
-                <ambientLight intensity={0.2} castShadow />
-                <pointLight position={[2, 2, 6]} intensity={100} castShadow />
+            <Canvas style={{ background: "white" }} shadows>
+                {/* <ambientLight intensity={0.2} castShadow /> */}
+                <directionalLight castShadow position={[2.5, 8, 5]} intensity={1.5} shadow-mapSize={1024} />
+
+                {/* <pointLight position={[2, 2, 6]} intensity={100} castShadow /> */}
                 {/* <Box position={[-1.2, 0, 0]} />
             <Box position={[1.2, 0, 0]} /> */}
                 {/* <Group rotation-y={rotation} /> */}
-                <Group rotation={rotation.rotation} items={items} rotateL={rotateL} rotateR={rotateR} />
-                {/* <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} /> */}
-                {/* <Plane position={[0, -0.3, 2]} rotation-x={5} scale={4} /> */}
+                <Group rotation={rotation} items={items} rotateL={rotateL} rotateR={rotateR} />
+                <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} />
+                <Plane position={[-0.5, -0.6, 2]} rotation-x={-90 * (Math.PI / 180)} scale={4} />
             </Canvas>
 
             <div className="flex gap-4">
