@@ -4,7 +4,7 @@ import { useDrag } from "@use-gesture/react";
 import { useRef } from "react";
 import { Mesh } from "three";
 
-const Bottle = ({ position, color, rotation, rotateL, rotateR }: { draggable: boolean, position: any, color: string, rotation: any, rotateL: () => void, rotateR: () => void }) => {
+const Bottle = ({ position, color, rotation, rotateL, rotateR, draggable }: { draggable: boolean, position: any, color: string, rotation: any, rotateL: () => void, rotateR: () => void }) => {
     const { size, viewport } = useThree()
     const aspect = size.width / viewport.width;
 
@@ -26,6 +26,7 @@ const Bottle = ({ position, color, rotation, rotateL, rotateR }: { draggable: bo
 
     const bind: any = useDrag(
         ({ active, movement: [x, y], down, cancel, canceled }) => {
+            if (!draggable) return;
             if (active && down && x <= -100) {
                 console.log('rotating Left')
                 rotateL();
