@@ -38,7 +38,7 @@ const Group = ({ items, rotation, rotateL, rotateR }: { rotation: { rotation: nu
 
     function getCirclePositions(nrOfItems: number, circleSize: number) {
         const positions = [];
-        const adjustment = nrOfItems % 2 === 0 ? -Math.PI / 2 : Math.PI / 2;
+        const adjustment = Math.PI / 2;
 
         for (let i = 0; i < nrOfItems; i++) {
             const angle = (2 * Math.PI / nrOfItems) * i + adjustment;
@@ -98,6 +98,13 @@ export default function Scene() {
         { color: 'orange' },
         { color: 'orange' },
         // { color: 'orange' },
+        // { color: 'orange' },
+        // { color: 'orange' },
+        // { color: 'orange' },
+        // { color: 'orange' },
+        // { color: 'orange' },
+        // { color: 'orange' },
+        // { color: 'orange' },
         // { color: 'purple' }
     ]
 
@@ -120,7 +127,7 @@ export default function Scene() {
 
     const STEP_SIZE = getStepSize(NR_OF_ITEMS)
 
-    const [rotation, setRotation] = useState<{ rotation: number, step: number }>({ rotation: STEP_SIZE, step: 0 });
+    const [rotation, setRotation] = useState<{ rotation: number, step: number }>({ rotation: 0, step: 0 });
 
     function getStepSize(nrOfItems: number) {
         const degrees = 360 / nrOfItems;
