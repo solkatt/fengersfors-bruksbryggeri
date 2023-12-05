@@ -38,8 +38,10 @@ const Group = ({ items, rotation, rotateL, rotateR }: { rotation: { rotation: nu
 
     function getCirclePositions(nrOfItems: number, circleSize: number) {
         const positions = [];
+        const adjustment = nrOfItems % 2 === 0 ? -Math.PI / 2 : Math.PI / 2;
+
         for (let i = 0; i < nrOfItems; i++) {
-            const angle = (2 * Math.PI / nrOfItems) * i;
+            const angle = (2 * Math.PI / nrOfItems) * i + adjustment;
             const x = circleSize * Math.cos(angle);
             const y = circleSize * Math.sin(angle);
             const angleToFaceCenter = Math.atan2(y, x);
@@ -91,10 +93,12 @@ export default function Scene() {
     const items = [
         { color: 'red' },
         { color: 'green' },
-        { color: 'brown' },
+        { color: 'yellow' },
         { color: 'blue' },
         { color: 'orange' },
-        { color: 'purple' }
+        { color: 'orange' },
+        // { color: 'orange' },
+        // { color: 'purple' }
     ]
 
     const posters = [
@@ -111,12 +115,12 @@ export default function Scene() {
 
     const NR_OF_ITEMS = items.length ?? 0;
 
-
+    console.log({ NR_OF_ITEMS })
 
 
     const STEP_SIZE = getStepSize(NR_OF_ITEMS)
 
-    const [rotation, setRotation] = useState<{ rotation: number, step: number }>({ rotation: STEP_SIZE / 2, step: 0 });
+    const [rotation, setRotation] = useState<{ rotation: number, step: number }>({ rotation: STEP_SIZE, step: 0 });
 
     function getStepSize(nrOfItems: number) {
         const degrees = 360 / nrOfItems;
@@ -168,12 +172,12 @@ export default function Scene() {
                 {/* <ambientLight intensity={0.2} castShadow /> */}
                 <directionalLight castShadow position={[2.5, 8, 5]} intensity={1.5} shadow-mapSize={1024} />
 
-                {/* <pointLight position={[2, 2, 6]} intensity={100} castShadow /> */}
+                <pointLight position={[2, 2, 6]} intensity={100} />
                 {/* <Box position={[-1.2, 0, 0]} />
             <Box position={[1.2, 0, 0]} /> */}
                 {/* <Group rotation-y={rotation} /> */}
                 <Group rotation={rotation} items={items} rotateL={rotateL} rotateR={rotateR} />
-                <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} />
+                {/* <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} /> */}
                 <Plane position={[-0.5, -0.6, 2]} rotation-x={-90 * (Math.PI / 180)} scale={4} />
             </Canvas>
 
