@@ -91,12 +91,12 @@ export default function Scene() {
 
 
     const items = [
-        { color: 'red' },
-        { color: 'green' },
-        { color: 'yellow' },
-        { color: 'blue' },
-        { color: 'orange' },
-        { color: 'orange' },
+        { color: 'red', text: 'Electric Eel' },
+        { color: 'green', text: 'Flooofy IPA' },
+        { color: 'yellow', text: 'Pejl Ejl' },
+        { color: 'blue', text: 'Stormy Cloudy Apple ' },
+        { color: 'orange', text: 'Solskens bira' },
+        { color: 'orange', text: 'Talang juice' },
         // { color: 'orange' },
         // { color: 'orange' },
         // { color: 'orange' },
@@ -175,6 +175,7 @@ export default function Scene() {
     return (
         // <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 1, 5] }}>
         <>
+            <Text text={items[rotation.step].text} />
             <Canvas style={{ background: "white" }} shadows>
                 {/* <ambientLight intensity={0.2} castShadow /> */}
                 <directionalLight castShadow position={[2.5, 8, 5]} intensity={1.5} shadow-mapSize={1024} />
@@ -195,5 +196,17 @@ export default function Scene() {
             </div>
 
         </>
+    )
+}
+
+
+
+const Text = ({ text }: { text: string }) => {
+
+    return (
+        <div className="z-10 absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-20">
+
+            <h1 className="text-6xl text-orange-300 font-bold">{text}</h1>
+        </div>
     )
 }
