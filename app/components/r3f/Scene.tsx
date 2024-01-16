@@ -39,12 +39,14 @@ const Group = ({
   rotateL,
   rotateR,
   showRoom,
+  position,
 }: {
   rotation: { rotation: number; step: number };
   items: { color: string }[];
   rotateL: () => void;
   rotateR: () => void;
   showRoom: boolean;
+  position: any;
 }) => {
   const groupRef = useRef(null);
 
@@ -84,8 +86,9 @@ const Group = ({
   const [springs, api] = useSprings(
     items?.length,
     (i) => {
+      // make function for this?
       const defaultPos = [pos[i].x, 0, pos[i].y];
-      const hidden = [pos[i].x, 4, pos[i].y]
+      const hidden = i === rotation.step ? defaultPos : [pos[i].x, 4, pos[i].y];
 
       console.log({ defaultPos });
       console.log("I::", i);
@@ -93,10 +96,10 @@ const Group = ({
         position: showRoom ? hidden : defaultPos,
         delay: i * 300,
         config: {
-            mass: 5,
-            friction: 120,
-            tension: 120,
-          },
+          mass: 5,
+          friction: 120,
+          tension: 120,
+        },
         // from: { position: defaultPos },
         // to: { position: showRoom ? [pos[i].x, 4, pos[i].y] : defaultPos },
       };
@@ -131,7 +134,7 @@ const Group = ({
   //
 
   return (
-    <animated.group ref={groupRef} rotation-y={rotationD} position={[0, 0, 2]}>
+    <animated.group ref={groupRef} rotation-y={rotationD} position={position}>
       {/* <group ref={groupRef} rotation-y={springs.rotation.to((rotation) => rotation)} > */}
 
       {/* <Bottle position={[1, 1, 1]} /> */}
@@ -270,6 +273,26 @@ export default function Scene() {
 
   const activate = () => setShowRoom((prev) => !prev);
 
+  const standardR3FCamera = {
+    fov: 75,
+    near: 0.1,
+    far: 1000,
+    position: [0, 0, 5],
+  };
+
+
+  const [props, api] = useSpring(
+    () => ({
+      position: showRoom ? [-0.4, 0, 2.3] : [0, 0, 2],
+      config: {
+        mass: 2,
+        friction: 50,
+        tension: 70,
+      },
+    }),
+    [showRoom]
+  )
+
   return (
     // <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 1, 5] }}>
     <>
@@ -291,6 +314,7 @@ export default function Scene() {
             <Box position={[1.2, 0, 0]} /> */}
         {/* <Group rotation-y={rotation} /> */}
         <Group
+          position={props.position}
           rotation={rotation}
           showRoom={showRoom}
           items={items}
