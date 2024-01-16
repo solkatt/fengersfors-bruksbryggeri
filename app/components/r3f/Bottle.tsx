@@ -50,19 +50,20 @@ const Bottle = ({ position, color, rotation, rotateL, rotateR, draggable }: { dr
 
 
     return (
-        <group position={position} rotation={rotation}
+        <animated.group position={position} rotation={rotation}
         >
             <animated.mesh
                 {...spring}
                 {...bind()}
                 castShadow
+               style={{touchAction: 'pan-x pan-y'} }
                 ref={bottleRef}
             >
                 {/* <cylinderGeometry args={[0.5, 0.5, 1]} /> */}
                 <boxGeometry args={[0.2, 0.2, 0.2]} />
                 <meshPhysicalMaterial attach="material" color={color} />
             </animated.mesh>
-        </group>
+        </animated.group>
     )
 }
 
