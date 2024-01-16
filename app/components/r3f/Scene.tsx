@@ -16,7 +16,14 @@ import {
 } from "@react-three/fiber";
 import OrbitControls from "three/examples/jsm/controls/OrbitControls.js";
 import { Mesh, PlaneGeometry, ShaderMaterial, Vector3 } from "three";
-import { useSpring, animated, easings, SpringValue } from "@react-spring/three";
+import {
+  useSpring,
+  animated,
+  easings,
+  SpringValue,
+  useTrail,
+  useSprings,
+} from "@react-spring/three";
 import vertexShader from "../../shaders/vertexShader";
 import fragmentShader from "../../shaders/fragmentShader";
 import { useDrag, useGesture } from "@use-gesture/react";
@@ -31,11 +38,13 @@ const Group = ({
   rotation,
   rotateL,
   rotateR,
+  showRoom,
 }: {
   rotation: { rotation: number; step: number };
   items: { color: string }[];
   rotateL: () => void;
   rotateR: () => void;
+  showRoom: boolean;
 }) => {
   const groupRef = useRef(null);
 
@@ -72,6 +81,29 @@ const Group = ({
 
   console.log("POS;", pos);
 
+  const [springs, api] = useSprings(
+    items?.length,
+    (i) => {
+      const defaultPos = [pos[i].x, 0, pos[i].y];
+      const hidden = [pos[i].x, 4, pos[i].y]
+
+      console.log({ defaultPos });
+      console.log("I::", i);
+      return {
+        position: showRoom ? hidden : defaultPos,
+        delay: i * 300,
+        config: {
+            mass: 5,
+            friction: 120,
+            tension: 120,
+          },
+        // from: { position: defaultPos },
+        // to: { position: showRoom ? [pos[i].x, 4, pos[i].y] : defaultPos },
+      };
+    },
+    [showRoom]
+  );
+
   // todo
   // draggable={i === rotation.step + 2}
   // the starting bottle should be calululated at step 0
@@ -83,9 +115,20 @@ const Group = ({
   // Transition to bottle page
   // Transition back to carousel
   // too much spin breaks carousel (cat noise crash)
+  // custom cursor
+  // custom loader
+  // animate in carousel and page elements
 
+  // PRODUCT PAGE
+  // animate shader poster to be a full cover bg
+  // animate non selected bottles upwards in a staggered fashion
+  // animate selected bottle to correct hero placement
+  // animate in Text and description
+  // animate in shader or coloured design elements
 
-
+  // turn off draggable
+  // animate in description and other fun stuff
+  //
 
   return (
     <animated.group ref={groupRef} rotation-y={rotationD} position={[0, 0, 2]}>
@@ -98,7 +141,24 @@ const Group = ({
             </mesh> */}
 
       {/* <Bottle color="red" position={[1, 2, 0]} /> */}
-      {items.map((item, i) => (
+
+      {springs.map((props, i) => {
+        console.log({ i, props });
+        return (
+          <Bottle
+            key={i}
+            draggable={i === rotation.step}
+            color={items[i].color}
+            position={props.position}
+            //   position={[pos[i].x, 0, pos[i].y]}
+            rotation={[0, -pos[i].angle, 0]}
+            rotateL={rotateL}
+            rotateR={rotateR}
+          />
+        );
+      })}
+
+      {/* {items.map((item, i) => (
         <Bottle
           key={i}
           draggable={i === rotation.step}
@@ -108,7 +168,7 @@ const Group = ({
           rotateL={rotateL}
           rotateR={rotateR}
         />
-      ))}
+      ))} */}
     </animated.group>
   );
 };
@@ -154,6 +214,11 @@ export default function Scene() {
   console.log({ NR_OF_ITEMS });
 
   const STEP_SIZE = getStepSize(NR_OF_ITEMS);
+
+  // read params and set current rotation
+  // useEffect(params) ----- .com/step?4
+  // check if step is present in number of items, else set default
+  // getStepSize(items) => calc rotation and setRotation({rotation: calcedRotation, step: params.step})
 
   const [rotation, setRotation] = useState<{ rotation: number; step: number }>({
     rotation: 0,
@@ -201,10 +266,17 @@ export default function Scene() {
 
   console.log(getStepSize(4));
 
+  const [showRoom, setShowRoom] = useState<boolean>(false);
+
+  const activate = () => setShowRoom((prev) => !prev);
+
   return (
     // <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 1, 5] }}>
     <>
       <Text text={items[rotation.step].text} />
+      <button onClick={activate} className='bg-green-200'>
+        activate
+      </button>
       <Canvas style={{ background: "white" }} shadows>
         {/* <ambientLight intensity={0.2} castShadow /> */}
         <directionalLight
@@ -220,11 +292,13 @@ export default function Scene() {
         {/* <Group rotation-y={rotation} /> */}
         <Group
           rotation={rotation}
+          showRoom={showRoom}
           items={items}
           rotateL={rotateL}
           rotateR={rotateR}
         />
-        {/* <Poster position={[0, 0, 2]} posters={posters} step={rotation.step} /> */}
+        {/* poster={posters[rotation.step]} */}
+        {/* <Poster position={showRoom ? [0,0,4] : [0, 0, 2]} posters={posters} step={rotation.step} /> */}
         <Plane
           position={[-0.5, -0.6, 2]}
           rotation-x={-90 * (Math.PI / 180)}
