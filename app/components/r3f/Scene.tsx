@@ -87,19 +87,42 @@ const Group = ({
     items?.length,
     (i) => {
       // make function for this?
+      const isActive = i === rotation.step;
+
       const defaultPos = [pos[i].x, 0, pos[i].y];
-      const hidden = i === rotation.step ? defaultPos : [pos[i].x, 4, pos[i].y];
+      const defaultRotation = [0, -pos[i].angle, 0]
+      
+      const heroPos = [pos[i].x, 3, pos[i].y];
+      const heroRotation = [0, -pos[i].angle * -Math.PI/2, 0]
+
+
+      console.log()
+      const hidden = isActive ? heroPos : [pos[i].x, 4, pos[i].y];
+
+      const config = isActive
+        ? {
+            delay: 600,
+            config: {
+              mass: 2,
+              friction: 50,
+              tension: 90,
+            },
+          }
+        : {
+            delay: isActive ? 700 : i * 300,
+            config: {
+              mass: 5,
+              friction: 120,
+              tension: 120,
+            },
+          };
 
       console.log({ defaultPos });
       console.log("I::", i);
       return {
         position: showRoom ? hidden : defaultPos,
-        delay: i * 300,
-        config: {
-          mass: 5,
-          friction: 120,
-          tension: 120,
-        },
+        rotation: showRoom && isActive ? heroRotation : defaultRotation,
+        ...config,
         // from: { position: defaultPos },
         // to: { position: showRoom ? [pos[i].x, 4, pos[i].y] : defaultPos },
       };
@@ -153,8 +176,9 @@ const Group = ({
             draggable={i === rotation.step}
             color={items[i].color}
             position={props.position}
+            rotation={props.rotation}
             //   position={[pos[i].x, 0, pos[i].y]}
-            rotation={[0, -pos[i].angle, 0]}
+            // rotation={[0, -pos[i].angle, 0]}
             rotateL={rotateL}
             rotateR={rotateR}
           />
@@ -280,18 +304,18 @@ export default function Scene() {
     position: [0, 0, 5],
   };
 
-
   const [props, api] = useSpring(
     () => ({
-      position: showRoom ? [-0.4, 0, 2.3] : [0, 0, 2],
+      position: showRoom ? [0, -3, 0] : [0, 0, 0],
+      delay: 600,
       config: {
         mass: 2,
         friction: 50,
-        tension: 70,
+        tension: 90,
       },
     }),
     [showRoom]
-  )
+  );
 
   return (
     // <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 1, 5] }}>
@@ -302,32 +326,39 @@ export default function Scene() {
       </button>
       <Canvas style={{ background: "white" }} shadows>
         {/* <ambientLight intensity={0.2} castShadow /> */}
-        <directionalLight
-          castShadow
-          position={[2.5, 8, 5]}
-          intensity={1.5}
-          shadow-mapSize={1024}
-        />
+        {/* @ts-expect-error */}
+        <animated.group position={props.position}>
+          <directionalLight
+            castShadow
+            position={[2.5, 8, 5]}
+            intensity={1.5}
+            shadow-mapSize={2048}
+          />
 
-        <pointLight position={[2, 2, 6]} intensity={100} />
-        {/* <Box position={[-1.2, 0, 0]} />
+          <pointLight position={[2, 2, 6]} intensity={100} />
+          {/* <Box position={[-1.2, 0, 0]} />
             <Box position={[1.2, 0, 0]} /> */}
-        {/* <Group rotation-y={rotation} /> */}
-        <Group
-          position={props.position}
-          rotation={rotation}
-          showRoom={showRoom}
-          items={items}
-          rotateL={rotateL}
-          rotateR={rotateR}
-        />
-        {/* poster={posters[rotation.step]} */}
-        {/* <Poster position={showRoom ? [0,0,4] : [0, 0, 2]} posters={posters} step={rotation.step} /> */}
-        <Plane
-          position={[-0.5, -0.6, 2]}
-          rotation-x={-90 * (Math.PI / 180)}
-          scale={4}
-        />
+          {/* <Group rotation-y={rotation} /> */}
+          <Group
+            position={[0, 0, 2]}
+            rotation={rotation}
+            showRoom={showRoom}
+            items={items}
+            rotateL={rotateL}
+            rotateR={rotateR}
+          />
+          {/* poster={posters[rotation.step]} */}
+          <Poster
+            position={[0, 3.2, 3.4]}
+            posters={posters}
+            step={rotation.step}
+          />
+          <Plane
+            position={[-0.5, -0.6, 2]}
+            rotation-x={-90 * (Math.PI / 180)}
+            scale={4}
+          />
+        </animated.group>
       </Canvas>
 
       <div className='flex gap-4'>
