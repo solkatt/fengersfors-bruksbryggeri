@@ -95,8 +95,8 @@ const Group = ({
       const heroPos = [pos[i].x, 3, pos[i].y];
       const heroRotation = [0, -pos[i].angle + Math.PI, 0];
 
-      console.log();
-      const hidden = isActive ? heroPos : [pos[i].x, 4, pos[i].y];
+      // const hidden = isActive ? heroPos : [pos[i].x, 4, pos[i].y];
+      const hidden = isActive ? heroPos : defaultPos;
 
       const config = isActive
         ? {
@@ -119,7 +119,8 @@ const Group = ({
       console.log({ defaultPos });
       console.log("I::", i);
       return {
-        position: showRoom ? hidden : defaultPos,
+        from: { position: [pos[i].x, 4, pos[i].y], rotation: defaultRotation },
+     position: showRoom ? hidden : defaultPos,
         rotation: showRoom && isActive ? heroRotation : defaultRotation,
         ...config,
         // from: { position: defaultPos },
@@ -152,6 +153,7 @@ const Group = ({
   // animate in shader or coloured design elements
 
   // turn off draggable
+  // turn on rotation of object
   // animate in description and other fun stuff
   //
 
