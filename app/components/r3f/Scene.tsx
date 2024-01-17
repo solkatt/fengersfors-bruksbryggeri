@@ -90,13 +90,12 @@ const Group = ({
       const isActive = i === rotation.step;
 
       const defaultPos = [pos[i].x, 0, pos[i].y];
-      const defaultRotation = [0, -pos[i].angle, 0]
-      
+      const defaultRotation = [0, -pos[i].angle, 0];
+
       const heroPos = [pos[i].x, 3, pos[i].y];
-      const heroRotation = [0, -pos[i].angle * -Math.PI/2, 0]
+      const heroRotation = [0, -pos[i].angle + Math.PI, 0];
 
-
-      console.log()
+      console.log();
       const hidden = isActive ? heroPos : [pos[i].x, 4, pos[i].y];
 
       const config = isActive
@@ -306,7 +305,8 @@ export default function Scene() {
 
   const [props, api] = useSpring(
     () => ({
-      position: showRoom ? [0, -3, 0] : [0, 0, 0],
+      position: showRoom ? [0, -3, 0.5] : [0, 0, 0],
+      rotation: showRoom ? [0, 0, 0] : [0, 0, 0], // could be rotation x only  (z/y?)
       delay: 600,
       config: {
         mass: 2,
@@ -327,7 +327,7 @@ export default function Scene() {
       <Canvas style={{ background: "white" }} shadows>
         {/* <ambientLight intensity={0.2} castShadow /> */}
         {/* @ts-expect-error */}
-        <animated.group position={props.position}>
+        <animated.group position={props.position} rotation={props.rotation}>
           <directionalLight
             castShadow
             position={[2.5, 8, 5]}
