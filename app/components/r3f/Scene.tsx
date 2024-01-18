@@ -39,7 +39,7 @@ const Group = ({
   rotateL,
   rotateR,
   showRoom,
-  position,
+  position
 }: {
   rotation: { rotation: number; step: number };
   items: { color: string }[];
@@ -63,6 +63,17 @@ const Group = ({
   // todo
   // calculate bottle position based on number of items
   // map bottles with correct position in a circle
+
+// -.....----
+const {viewport} = useThree()
+
+const isMobile = window.innerWidth < 768;
+
+console.log(isMobile)
+
+const responsiveRatio = viewport.width / 12;
+
+// -.....----
 
   function getCirclePositions(nrOfItems: number, circleSize: number) {
     const positions = [];
@@ -92,7 +103,8 @@ const Group = ({
       const defaultPos = [pos[i].x, 0, pos[i].y];
       const defaultRotation = [0, -pos[i].angle, 0];
 
-      const heroPos = [pos[i].x, 3, pos[i].y];
+      // const heroPos = [pos[i].x, 3, pos[i].y];
+      const heroPos = isMobile ? [pos[i].x, 3, pos[i].y] :  [pos[i].x - responsiveRatio / 4, 3, pos[i].y] ;
       const heroRotation = [0, -pos[i].angle + Math.PI, 0];
 
       // const hidden = isActive ? heroPos : [pos[i].x, 4, pos[i].y];
@@ -120,15 +132,19 @@ const Group = ({
       console.log("I::", i);
       return {
         from: { position: [pos[i].x, 4, pos[i].y], rotation: defaultRotation },
-     position: showRoom ? hidden : defaultPos,
+        position: showRoom ? hidden : defaultPos,
         rotation: showRoom && isActive ? heroRotation : defaultRotation,
         ...config,
         // from: { position: defaultPos },
         // to: { position: showRoom ? [pos[i].x, 4, pos[i].y] : defaultPos },
       };
     },
-    [showRoom]
+    [showRoom, isMobile]
   );
+
+
+
+
 
   // todo
   // draggable={i === rotation.step + 2}
@@ -158,7 +174,7 @@ const Group = ({
   //
 
   return (
-    <animated.group ref={groupRef} rotation-y={rotationD} position={position}>
+    <animated.group rotation-y={rotationD} position={position}>
       {/* <group ref={groupRef} rotation-y={springs.rotation.to((rotation) => rotation)} > */}
 
       {/* <Bottle position={[1, 1, 1]} /> */}
@@ -291,6 +307,7 @@ export default function Scene() {
   // function degreesToRadians(degrees: number) {
   //     return degrees * (Math.PI / 180);
   // }
+  
 
   console.log(getStepSize(4));
 
@@ -363,6 +380,7 @@ export default function Scene() {
         </animated.group>
       </Canvas>
 
+      <Text text='Description' className={`bg-white translate-y-60  p-2 text-sm w-96 max-w-xl rounded h-40 ${showRoom ? 'opacity-100 transition-all duration-1000 delay-700 scale-100' : ' -top-[45vh]  opacity-100 transition-all duration-1000 delay-500 scale-0'}`} />
       <div className='flex gap-4'>
         <h1>{rotation.step}</h1>
         <div
@@ -382,10 +400,12 @@ export default function Scene() {
   );
 }
 
-const Text = ({ text }: { text: string }) => {
+const Text = ({ text, className }: { text: string; className?: string }) => {
   return (
-    <div className='z-10 absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-20'>
-      <h1 className='text-6xl text-orange-300 font-bold'>{text}</h1>
+    <div
+      className={`z-10 absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-20 text-6xl ${className}`}
+    >
+      <h1 className=' text-orange-300 font-bold'>{text}</h1>
     </div>
   );
 };
