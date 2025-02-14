@@ -14,7 +14,7 @@ interface GLTFData {
 
 
 export function Model(props: any) {
-  const { nodes, materials } = useGLTF("/Can.gltf") as GLTFData;
+  const { nodes, materials } = useGLTF("/langburk.gltf") as GLTFData;
   return (
     <animated.group {...props} dispose={null}>
       <mesh
@@ -33,14 +33,14 @@ export function Model(props: any) {
         position={[0, 0.081, 0]}
         scale={0.009}
       />
-      {/* <mesh
+      <mesh
         castShadow
         receiveShadow
         scale={1.01}
         position={[0, -0.85, 0]}
         geometry={nodes.Label.geometry}
         material={materials.Label}
-      /> */}
+      />
       <mesh
         castShadow
         receiveShadow

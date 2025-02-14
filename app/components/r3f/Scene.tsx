@@ -14,7 +14,7 @@ import {
   Vector2,
   useThree,
 } from "@react-three/fiber";
-import OrbitControls from "three/examples/jsm/controls/OrbitControls.js";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import { Mesh, PlaneGeometry, ShaderMaterial, Vector3 } from "three";
 import {
   useSpring,
@@ -33,6 +33,7 @@ import Plane from "./Plane";
 import Carousell from "./Carousell";
 import { config } from "process";
 import { Environment } from "@react-three/drei";
+import Image from "next/image";
 
 extend({ OrbitControls });
 
@@ -46,12 +47,12 @@ export default function Scene() {
   // })
 
   const items = [
-    { color: "red", text: "0: Electric Eel" },
-    { color: "green", text: "1: Flooofy IPA" },
-    { color: "yellow", text: "2: Pejl Ejl" },
-    { color: "blue", text: "3: Stormy Cloudy Apple " },
-    { color: "orange", text: "4: Solskens bira" },
-    { color: "orange", text: "5: Talang juice" },
+    { color: "red", text: "0: Electric Eel", logo: 'turtle' },
+    { color: "green", text: "1: Flooofy IPA", logo: 'turtle' },
+    { color: "yellow", text: "2: Pejl Ejl", logo: 'turtle' },
+    { color: "blue", text: "3: Stormy Cloudy Apple ", logo: 'turtle' },
+    { color: "orange", text: "4: Solskens bira", logo: 'turtle' },
+    { color: "orange", text: "5: Talang juice", logo: 'turtle' },
     // { color: 'orange' },
     // { color: 'orange' },
     // { color: 'orange' },
@@ -143,13 +144,13 @@ export default function Scene() {
   return (
     // <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 1, 5] }}>
     <>
-      <Text text={items[rotation.step].text} />
+      <Text text={items[rotation.step].text} logo={items[rotation.step].logo} />
       <button onClick={activate} className='bg-green-200'>
         activate
       </button>
       <Canvas style={{ background: "white" }} shadows>
         {/* <ambientLight intensity={0.2} castShadow /> */}
-        <Environment preset='studio' background={false}/>
+        {/* <Environment preset='studio' background={false}/> */}
 
         <MockCamera showRoom={showRoom}>
           <directionalLight
@@ -205,11 +206,12 @@ export default function Scene() {
   );
 }
 
-const Text = ({ text, className }: { text: string; className?: string }) => {
+const Text = ({ text, className, logo }: { text: string; className?: string, logo: string; }) => {
   return (
     <div
       className={`z-10 absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-20 text-6xl ${className}`}
     >
+      <Image src={`/${logo}.png`} alt="turtle-beer-logo" width="200" height="200"/>
       <h1 className=' text-orange-300 font-bold'>{text}</h1>
     </div>
   );

@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import fragmentShader from "../../shaders/fragmentShader";
+import fragmentShader2 from "../../shaders/fragmentShader2";
+import fragmentShader3 from "../../shaders/fragmentShader3";
 import vertexShader from "../../shaders/vertexShader";
 import { Mesh, Vector2, Vector3 } from "three";
 import { useFrame, useThree } from "@react-three/fiber";
+import { shaderMaterial } from "@react-three/drei";
 
 const Poster = ({ posters, step, ...props }: any) => {
   // https://blog.maximeheckel.com/posts/the-study-of-shaders-with-react-three-fiber/
@@ -67,11 +70,17 @@ const Poster = ({ posters, step, ...props }: any) => {
   //     meshRef.current.material.uniforms.u_test.value = new Vector3(step);
   // });
 
+
+  // TODO!
+  // Hanlde all shaders scenes inside one shader
+  // Add default shader for carousell mode
+  // Smoothly animate between shader scenes
+  // animate from the top to match the can flying up in the air
   return (
     <mesh {...props} ref={meshRef}>
       <planeGeometry args={[3, 3, 1]} />
       <shaderMaterial
-        fragmentShader={fragmentShader}
+        fragmentShader={fragmentShader3}
         vertexShader={vertexShader}
         uniforms={uniforms}
       />
